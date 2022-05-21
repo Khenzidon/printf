@@ -77,7 +77,3 @@ int print_rot13(va_list ap, params_t *params)
 	}
 	return (count);
 }
-© 2022 GitHub, Inc.
-Terms
-Privacy
-Security
