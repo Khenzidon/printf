@@ -1,84 +1,132 @@
 #include "main.h"
 
 /**
- * print_hex - prints a number in hexadecimal base,
- * in lowercase
- * @l: va_list arguments from _printf
- * @f: pointer to the struct flags that determines
- * if a flag is passed to _printf
- * Description: the function calls convert() which in turns converts the input
- * number into the correct base and returns it as a string
- * Return: the number of char printed
+ * print_char - prints character
+ * @ap: argument pointer
+ * @params: the parameters struct
+ *
+ * Return: number chars printed
  */
-int print_hex(va_list l, flags_t *f)
+int print_char(va_list ap, params_t *params)
 {
-	unsigned int num = va_arg(l, unsigned int);
-	char *str = convert(num, 16, 1);
-	int count = 0;
+	char pad_char = ' ';
+	unsigned int pad = 1, sum = 0, ch = va_arg(ap, int);
 
-	if (f->hash == 1 && str[0] != '0')
-		count += _puts("0x");
-	count += _puts(str);
-	return (count);
+	if (params->minus_flag)
+		sum += _putchar(ch);
+	while (pad++ < params->width)
+		sum += _putchar(pad_char);
+	if (!params->minus_flag)
+		sum += _putchar(ch);
+	return (sum);
 }
 
 /**
- * print_hex_big - prints a number in hexadecimal base,
- * in uppercase
- * @l: va_list arguments from _printf
- * @f: pointer to the struct that determines
- * if a flag is passed to _printf
- * Description: the function calls convert() which in turns converts the input
- * number into the correct base and returns it as a string
- * Return: the number of char printed
+ * print_int - prints integer
+ * @ap: argument pointer
+ * @params: the parameters struct
+ *
+ * Return: number chars printed
  */
-int print_hex_big(va_list l, flags_t *f)
+int print_int(va_list ap, params_t *params)
 {
-	unsigned int num = va_arg(l, unsigned int);
-	char *str = convert(num, 16, 0);
-	int count = 0;
+	long l;
 
-	if (f->hash == 1 && str[0] != '0')
-		count += _puts("0X");
-	count += _puts(str);
-	return (count);
+	if (params->l_modifier)
+		l = va_arg(ap, long);
+	else if (params->h_modifier)
+		l = (short int)va_arg(ap, int);
+	else
+		l = (int)va_arg(ap, int);
+	return (print_number(convert(l, 10, 0, params), params));
 }
 
 /**
- * print_binary - prints a number in base 2
- * @l: va_list arguments from _printf
- * @f: pointer to the struct that determines
- * if a flag is passed to _printf
- * Description: the function calls convert() which in turns converts the input
- * number into the correct base and returns it as a string
- * Return: the number of char printed
+ * print_string - prints string
+ * @ap: argument pointer
+ * @params: the parameters struct
+ *
+ * Return: number chars printed
  */
-int print_binary(va_list l, flags_t *f)
+int print_string(va_list ap, params_t *params)
 {
-	unsigned int num = va_arg(l, unsigned int);
-	char *str = convert(num, 2, 0);
+	char *str = va_arg(ap, char *), pad_char = ' ';
+	unsigned int pad = 0, sum = 0, i = 0, j;
 
-	(void)f;
-	return (_puts(str));
+	(void)params;
+	switch ((int)(!str))
+		case 1:
+			str = NULL_STRING;
+
+	j = pad = _strlen(str);
+	if (params->precision < pad)
+		j = pad = params->precision;
+
+	if (params->minus_flag)
+	{
+		if (params->precision != UINT_MAX)
+			for (i = 0; i < pad; i++)
+				sum += _putchar(*str++);
+		else
+			sum += _puts(str);
+	}
+	while (j++ < params->width)
+		sum += _putchar(pad_char);
+	if (!params->minus_flag)
+	{
+		if (params->precision != UINT_MAX)
+			for (i = 0; i < pad; i++)
+				sum += _putchar(*str++);
+		else
+			sum += _puts(str);
+	}
+	return (sum);
 }
 
 /**
- * print_octal - prints a number in base 8
- * @l: va_list arguments from _printf
- * @f: pointer to the struct that determines
- * if a flag is passed to _printf
- * Description: the function calls convert() which in turns converts the input
- * number into the correct base and returns it as a string
- * Return: the number of char printed
+ * print_percent - prints string
+ * @ap: argument pointer
+ * @params: the parameters struct
+ *
+ * Return: number chars printed
  */
-int print_octal(va_list l, flags_t *f)
+int print_percent(va_list ap, params_t *params)
 {
-	unsigned int num = va_arg(l, unsigned int);
-	char *str = convert(num, 8, 0);
-	int count = 0;
+	(void)ap;
+	(void)params;
+	return (_putchar('%'));
+}
 
-	if (f->hash == 1 && str[0] != '0')
-		count += _putchar('0');
-	count += _puts(str);
-	return (count);
+/**
+ * print_S - custom format specifier
+ * @ap: argument pointer
+ * @params: the parameters struct
+ *
+ * Return: number chars printed
+ */
+int print_S(va_list ap, params_t *params)
+{
+	char *str = va_arg(ap, char *);
+	char *hex;
+	int sum = 0;
+
+	if ((int)(!str))
+		return (_puts(NULL_STRING));
+	for (; *str; str++)
+	{
+		if ((*str > 0 && *str < 32) || *str >= 127)
+		{
+			sum += _putchar('\\');
+			sum += _putchar('x');
+			hex = convert(*str, 16, 0, params);
+			if (!hex[1])
+				sum += _putchar('0');
+			sum += _puts(hex);
+		}
+		else
+		{
+			sum += _putchar(*str);
+		}
+	}
+	return (sum);
 }
